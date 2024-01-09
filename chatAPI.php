@@ -1,4 +1,7 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Verificar si se recibió la pregunta del chat
     if (isset($_POST['mensaje'])) {
@@ -7,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Verificar si la pregunta contiene información relacionada con computadoras
         if (stripos($pregunta, 'computadora') !== false || stripos($pregunta, 'computador') !== false || stripos($pregunta, 'memoria ram') !== false || stripos($pregunta, 'disco duro') !== false) {
-            $api_key = "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";
+            $api_key = "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";
 
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, 'https://api.openai.com/v1/chat/completions');
@@ -29,11 +32,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
 
             $response = curl_exec($ch);
-            $respuesta = '';
+
+            if ($response === false) {
+                die(curl_error($ch));
+            }
+
             $decoded_response = json_decode($response, true);
 
             if (isset($decoded_response['choices'][0]['message']['content'])) {
                 $respuesta = $decoded_response['choices'][0]['message']['content'];
+
+                // Buscar productos recomendados en la base de datos y obtener información adicional
+                $infoProductos = buscarProductosEnRespuesta($respuesta);
+
+                if (!empty($infoProductos)) {
+                    $respuesta .= "\n\n¡Buenas noticias! Tenemos los siguientes productos recomendados en venta:\n";
+                    $respuesta .= "<ul>";
+
+                    foreach ($infoProductos as $infoProducto) {
+                        $respuesta .= "<li>$infoProducto</li>";
+                    }
+
+                    $respuesta .= "</ul>";
+                } else {
+                    $respuesta .= "\nLo siento, actualmente no tenemos productos disponibles que coincidan con la recomendación.";
+                }
+            } else {
+                // Manejar el caso en que la respuesta del modelo no contiene contenido
+                $respuesta = "Lo siento, no pude entender tu pregunta.";
             }
 
             curl_close($ch);
@@ -44,5 +70,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo "Como experto en computadoras, no puedo ayudarte con eso. ¿Tienes alguna otra pregunta relacionada con las computadoras?";
         }
     }
+}
+
+// Función para buscar información de productos en la base de datos
+function buscarProductosEnRespuesta($respuesta) {
+    // Conectar a la base de datos (actualiza con tus credenciales)
+    $db_host = 'localhost';
+    $db_user = 'root';
+    $db_password = '';
+    $db_name = 'ecommerce';
+
+    $conn = new mysqli($db_host, $db_user, $db_password, $db_name);
+
+    // Verificar la conexión a la base de datos
+    if ($conn->connect_error) {
+        die("Error de conexión a la base de datos: " . $conn->connect_error);
+    }
+
+    // Realizar una búsqueda en la base de datos para encontrar productos por nombre
+    $sql = "SELECT pdt_name, pdt_price FROM products";
+    $result = $conn->query($sql);
+
+    $productosRecomendados = [];
+
+    if ($result !== false && $result->num_rows > 0) {
+        while ($producto = $result->fetch_assoc()) {
+            // Verificar si el nombre del producto está presente en la respuesta
+            if (stripos($respuesta, $producto['pdt_name']) !== false) {
+                $productosRecomendados[] = $producto['pdt_name'] . " - $" . $producto['pdt_price'];
+            }
+        }
+    }
+
+    // Retornar la lista de productos recomendados
+    return $productosRecomendados;
 }
 ?>
