@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Verificar si la pregunta contiene información relacionada con computadoras
         if (stripos($pregunta, 'computadora') !== false || stripos($pregunta, 'computador') !== false || stripos($pregunta, 'memoria ram') !== false || stripos($pregunta, 'disco duro') !== false) {
-            $api_key = "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";
+            $api_key = "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";
 
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, 'https://api.openai.com/v1/chat/completions');
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $infoProductos = buscarProductosEnRespuesta($respuesta);
 
                 if (!empty($infoProductos)) {
-                    $respuesta .= "\n\n¡Buenas noticias! Tenemos los siguientes productos recomendados en venta:\n";
+                    $respuesta .= "<br><br>¡Buenas noticias! Tenemos los siguientes productos recomendados en venta:<br>";
                     $respuesta .= "<ul>";
 
                     foreach ($infoProductos as $infoProducto) {
@@ -78,7 +78,7 @@ function buscarProductosEnRespuesta($respuesta) {
     $db_host = 'localhost';
     $db_user = 'root';
     $db_password = '';
-    $db_name = 'ecommerce';
+    $db_name = 'integrador_sexto';
 
     $conn = new mysqli($db_host, $db_user, $db_password, $db_name);
 
@@ -88,7 +88,7 @@ function buscarProductosEnRespuesta($respuesta) {
     }
 
     // Realizar una búsqueda en la base de datos para encontrar productos por nombre
-    $sql = "SELECT pdt_name, pdt_price FROM products";
+    $sql = "SELECT Nombre, Precio FROM productos WHERE Stock>0";
     $result = $conn->query($sql);
 
     $productosRecomendados = [];
@@ -96,8 +96,8 @@ function buscarProductosEnRespuesta($respuesta) {
     if ($result !== false && $result->num_rows > 0) {
         while ($producto = $result->fetch_assoc()) {
             // Verificar si el nombre del producto está presente en la respuesta
-            if (stripos($respuesta, $producto['pdt_name']) !== false) {
-                $productosRecomendados[] = $producto['pdt_name'] . " - $" . $producto['pdt_price'];
+            if (stripos($respuesta, $producto['Nombre']) !== false) {
+                $productosRecomendados[] = $producto['Nombre'] . " - $" . $producto['Precio'];
             }
         }
     }
