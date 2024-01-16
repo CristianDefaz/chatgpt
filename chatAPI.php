@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $infoProductos = buscarProductosEnRespuesta($respuesta);
 
                 if (!empty($infoProductos)) {
-                    $respuesta .= "<br><br>¡Buenas noticias! Tenemos los siguientes productos recomendados en venta:<br>";
+                    $respuesta .= "<br><br>¡Buenas noticias! Tenemos los siguientes productos recomendados en nuestros productos a la venta:<br>";
                     $respuesta .= "<ul>";
 
                     foreach ($infoProductos as $infoProducto) {
@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     $respuesta .= "</ul>";
                 } else {
-                    $respuesta .= "\nLo siento, actualmente no tenemos productos disponibles que coincidan con la recomendación.";
+                    $respuesta .= "\nLo siento, actualmente no tenemos productos disponibles que coincidan con la recomendación antes dada.";
                 }
             } else {
                 // Manejar el caso en que la respuesta del modelo no contiene contenido
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo $respuesta;
         } else {
             // Respuesta cuando la pregunta tiene información relacionada con computadoras
-            echo "Como experto en computadoras, no puedo ayudarte con eso. ¿Tienes alguna otra pregunta relacionada con las computadoras?";
+            echo "Como experto en computadoras, no puedo ayudarte con esa pregunta. ¿Tienes alguna otra pregunta relacionada con las computadoras?";
         }
     }
 }
@@ -97,7 +97,7 @@ function buscarProductosEnRespuesta($respuesta) {
         while ($producto = $result->fetch_assoc()) {
             // Verificar si el nombre del producto está presente en la respuesta
             if (stripos($respuesta, $producto['Nombre']) !== false) {
-                $productosRecomendados[] = $producto['Nombre'] . " - $" . $producto['Precio'];
+                $productosRecomendados[] = $producto['Nombre'] . ", su precio esta en: $" . $producto['Precio'];
             }
         }
     }
