@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Verificar si la pregunta contiene información relacionada con computadoras
         if (stripos($pregunta, 'computadora') !== false || stripos($pregunta, 'computador') !== false || stripos($pregunta, 'memoria ram') !== false || stripos($pregunta, 'disco duro') !== false) {
-            $api_key = "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";
+            $api_key = "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";
 
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, 'https://api.openai.com/v1/chat/completions');
