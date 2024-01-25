@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $palabrasClave = obtenerPalabrasClaveDesdeBD();
         // Verificar si la pregunta contiene información relacionada con computadoras
         if (contienePalabrasClave($pregunta, $palabrasClave)) {
-            $api_key = "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";
+            $api_key = "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";
 
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, 'https://api.openai.com/v1/chat/completions');
@@ -89,23 +89,25 @@ function buscarProductosEnRespuesta($respuesta) {
     }
 
     // Realizar una búsqueda en la base de datos para encontrar productos por nombre
-    $sql = "SELECT Nombre, Precio FROM productos WHERE Stock>0";
+    $sql = "SELECT Nombre, Precio FROM productos WHERE Stock > 0";
     $result = $conn->query($sql);
 
     $productosRecomendados = [];
 
     if ($result !== false && $result->num_rows > 0) {
         while ($producto = $result->fetch_assoc()) {
-            // Verificar si el nombre del producto está presente en la respuesta
+            // Utilizamos stripos para hacer la búsqueda insensible a mayúsculas y minúsculas
+            // Verificamos si el nombre del producto está presente en la respuesta
             if (stripos($respuesta, $producto['Nombre']) !== false) {
-                $productosRecomendados[] = $producto['Nombre'] . ", su precio esta en: $" . $producto['Precio'];
+                $productosRecomendados[] = $producto['Nombre'] . ", su precio es: $" . $producto['Precio'];
             }
         }
-    }
-
+    } 
     // Retornar la lista de productos recomendados
     return $productosRecomendados;
 }
+
+
 
 // Función para obtener palabras clave desde la base de datos
 function obtenerPalabrasClaveDesdeBD() {
