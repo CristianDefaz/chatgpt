@@ -7,9 +7,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['mensaje'])) {
         // Obtener la pregunta del chat
         $pregunta = $_POST['mensaje'];
-
+        // Obtener palabras clave desde la base de datos
+        $palabrasClave = obtenerPalabrasClaveDesdeBD();
         // Verificar si la pregunta contiene información relacionada con computadoras
-        if (stripos($pregunta, 'computadora') !== false || stripos($pregunta, 'computador') !== false || stripos($pregunta, 'memoria ram') !== false || stripos($pregunta, 'disco duro') !== false) {
+        if (contienePalabrasClave($pregunta, $palabrasClave)) {
             $api_key = "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";
 
             $ch = curl_init();
@@ -104,5 +105,42 @@ function buscarProductosEnRespuesta($respuesta) {
 
     // Retornar la lista de productos recomendados
     return $productosRecomendados;
+}
+
+// Función para obtener palabras clave desde la base de datos
+function obtenerPalabrasClaveDesdeBD() {
+    $db_host = 'localhost';
+    $db_user = 'root';
+    $db_password = '';
+    $db_name = 'integrador_sexto';
+
+    $conn = new mysqli($db_host, $db_user, $db_password, $db_name);
+
+    if ($conn->connect_error) {
+        die("Error de conexión a la base de datos: " . $conn->connect_error);
+    }
+
+    $palabrasClave = [];
+    $sql = "SELECT palabras FROM palabritas";
+    $result = $conn->query($sql);
+
+    if ($result !== false && $result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $palabrasClave[] = $row['palabras'];
+        }
+    }
+
+    return $palabrasClave;
+}
+
+// Función para verificar si la pregunta contiene palabras clave
+function contienePalabrasClave($pregunta, $palabrasClave) {
+    foreach ($palabrasClave as $palabra) {
+        if (stripos($pregunta, $palabra) !== false) {
+            return true;
+        }
+    }
+
+    return false;
 }
 ?>
