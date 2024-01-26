@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $palabrasClave = obtenerPalabrasClaveDesdeBD();
         // Verificar si la pregunta contiene información relacionada con computadoras
         if (contienePalabrasClave($pregunta, $palabrasClave)) {
-            $api_key = "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";
+            $api_key = "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";
 
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, 'https://api.openai.com/v1/chat/completions');
@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $infoProductos = buscarProductosEnRespuesta($respuesta);
 
                 if (!empty($infoProductos)) {
-                    $respuesta .= "<br><br>¡Buenas noticias! Tenemos los siguientes productos recomendados en nuestros productos a la venta:<br>";
+                    $respuesta .= "<br><br>¡Buenas noticias! Tenemos los siguientes productos en venta basandonos en la respuesta anterior:<br>";
                     $respuesta .= "<ul>";
 
                     foreach ($infoProductos as $infoProducto) {
@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     $respuesta .= "</ul>";
                 } else {
-                    $respuesta .= "\nLo siento, actualmente no tenemos productos disponibles que coincidan con la recomendación antes dada.";
+                    $respuesta .= "<br><br>Lo siento, actualmente no tenemos productos disponibles que coincidan con la recomendación antes dada.<br>";
                 }
             } else {
                 // Manejar el caso en que la respuesta del modelo no contiene contenido
@@ -96,13 +96,31 @@ function buscarProductosEnRespuesta($respuesta) {
 
     if ($result !== false && $result->num_rows > 0) {
         while ($producto = $result->fetch_assoc()) {
-            // Utilizamos stripos para hacer la búsqueda insensible a mayúsculas y minúsculas
-            // Verificamos si el nombre del producto está presente en la respuesta
-            if (stripos($respuesta, $producto['Nombre']) !== false) {
+            $nombreProducto = $producto['Nombre'];
+
+            // Verificar si la respuesta contiene palabras clave del nombre del producto
+            $palabrasClaveProducto = explode(' ', strtolower($nombreProducto));
+            $coincidencias = 0;
+
+            foreach ($palabrasClaveProducto as $palabra) {
+                if (stripos($respuesta, $palabra) !== false) {
+                    $coincidencias++;
+                }
+            }
+
+            // Establecer umbral de coincidencias (ajusta según sea necesario)
+            $umbralCoincidencias = ceil(count($palabrasClaveProducto) / 2);
+
+            // Si hay suficientes coincidencias, agregar el producto a la lista recomendada
+            if ($coincidencias >= $umbralCoincidencias) {
                 $productosRecomendados[] = $producto['Nombre'] . ", su precio es: $" . $producto['Precio'];
             }
         }
-    } 
+    }
+
+    // Cerrar la conexión a la base de datos
+    $conn->close();
+
     // Retornar la lista de productos recomendados
     return $productosRecomendados;
 }
